@@ -1,7 +1,9 @@
 from django.db import models
-from django.db.models import *
+from model_utils.models import TimeStampedModel
+from django.db.models import CharField, SmallIntegerField,\
+    ForeignKey, BooleanField, IntegerField, DecimalField, ManyToManyField
 
-class FoodCategory():
+class FoodCategory(TimeStampedModel):
 
     name_ru = CharField(verbose_name="Название на русском", max_length=255)
     name_en = CharField(verbose_name="Название на английском", max_length=255)
@@ -18,3 +20,31 @@ class FoodCategory():
         verbose_name = "Раздел меню"
         verbose_name_plural = "Разделы меню"
         ordering = ('name_ru', 'order_id')
+
+
+class Food(TimeStampedModel):
+
+    category = ForeignKey(FoodCategory, verbose_name='Раздел меню', related_name='food', on_delete=models.CASCADE)
+    
+    is_vegan = BooleanField(verbose_name='Вегетарианское меню', default=False)
+    is_special = BooleanField(verbose_name='Специальное предложение', default=False)
+
+    code = IntegerField(verbose_name='Код поставщика')
+    internal_code = IntegerField(verbose_name='Код в приложении', unique=True, null=True, blank=True)
+
+    name_ru = CharField(verbose_name='Название на русском', max_length=255)
+    description_ru = CharField(verbose_name='Описание на русском', max_length=255, blank=True, null=True)
+    description_en = CharField(verbose_name='Описание на английском', max_length=255, blank=True, null=True)
+    description_ch = CharField(verbose_name='Описание на китайском', max_length=255, blank=True, null=True)
+
+    cost = DecimalField(verbose_name='Цена', max_digits=10, decimal_places=2)
+    
+    is_publish = BooleanField(verbose_name='Опубликовано', default=True)
+    
+    additional = ManyToManyField('self', verbose_name='Дополнительные товары', symmetrical=False,
+                                        related_name='additional_from', blank=True)
+
+
+    def __str__(self):
+        return self.name_ru
+    
