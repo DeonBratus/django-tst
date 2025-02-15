@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import FoodHandler, FoodViewer, FoodCategoryHandler
+from .views import FoodViewer
 
 URL_BASE = 'api/v1/food'
 
