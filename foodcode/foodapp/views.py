@@ -4,20 +4,25 @@ from rest_framework.views import APIView
 from foodapp import models
 from foodapp import serializers
 
+
 class FoodViewer(APIView):
     
-    def post(self, request):
-        serializer = serializers.FoodListSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
     def get(self, request):
-        categories = models.FoodCategory.objects.all()    
-        serializer = serializers.FoodListSerializer(categories, many=True)
-        return Response(serializer.data)
- 
+        food_items = models.Food.objects.filter(is_publish=True)
+        food_categories = models.FoodCategory.objects.all()
+        
+        categories_data = serializers.FoodListSerializer(food_categories, many=True).data
+        filtered_categories = []
+        
+        for category in categories_data:
+            category_foods = food_items.filter(category_id=category['id'])
+            if category_foods.exists():
+                category_data = {key: category[key] for key in ('id', 'name_ru', 'name_en', 'name_ch', 'order_id')}
+                category_data['foods'] = serializers.FoodSerializer(category_foods, many=True).data
+                filtered_categories.append(category_data)
+        
+        response_data = {
+            "categories": filtered_categories,
+        }
+        return Response(response_data)
+
